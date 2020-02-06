@@ -1,0 +1,39 @@
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: mvcapp-deployment
+spec:
+  selector:
+    matchLabels:
+      app: mvcapp
+  replicas: 1 # tells deployment to run 2 pods matching the template
+  template:
+    metadata:
+      labels:
+        app: mvcapp
+    spec:
+      containers:
+      - name: mvcapp
+        image: anandshivasingh/mvcapp:1.#{Build.BuildId}#
+        ports:
+        - containerPort: 80
+        env:
+          - name: ConnectionStrings
+            valueFrom:
+              secretKeyRef:
+                name: mssql-secret
+                key: db-connection-string-secret
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: mvcapp-service
+spec:
+  selector:
+    app: mvcapp
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: LoadBalancer
